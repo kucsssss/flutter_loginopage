@@ -11,7 +11,7 @@ class Api {
       final Iterable data = json.decode(response.body);
       return List<Person>.from(data.map((person) => Person.fromJson(person)));
     } else {
-      throw Exception('Failed to get persons');
+      throw Exception('Nem sikerult felhasznalot hozzaadni!');
     }
   }
 

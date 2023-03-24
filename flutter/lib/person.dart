@@ -29,4 +29,8 @@ class Person {
       name: name,
     );
   }
+
+  static Person getDefault() {
+    return Person(id: "", name: "");
+  }
 }

@@ -1,129 +1,110 @@
 import 'package:flutter/material.dart';
-import 'person.dart';
 import 'api.dart';
+import 'person.dart';
 
 class MainScreen extends StatefulWidget {
-  final Person? person;
-  final Function? onUpdate;
-
-  MainScreen({required this.person, this.onUpdate});
+  const MainScreen({Key? key, required person}) : super(key: key);
 
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final Api _api = Api();
-  List<Person> _persons = [];
+  TextEditingController _usernameController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _loadPersons();
-  }
+  Future<List<Person>> _futurePersons = Api.getPersons();
 
-  Future<void> _loadPersons() async {
-    final persons = await Api.getPersons();
-    setState(() {
-      _persons = persons;
-    });
-  }
+  void _login() async {
+    String username = _usernameController.text;
+    String password = _passwordController.text;
 
- import 'dart:html';
+    try {
+      final persons = await _futurePersons;
 
-import 'package:flutter/material.dart';
-import 'person.dart';
-import 'api.dart';
+      final currentUserIndex = persons.indexWhere(
+        (person) => person.name == username,
+      );
+      final currentUser =
+          currentUserIndex > -1 ? persons[currentUserIndex] : null;
 
-class MainScreen extends StatefulWidget {
-  final Person? person;
-  final Function? onUpdate;
-
-  MainScreen({required this.person, this.onUpdate});
-
-  @override
-  _MainScreenState createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  final Api _api = Api();
-  List<Person> _persons = [];
-  final _nameController = TextEditingController();
-  @override
-  void initState() {
-    super.initState();
-    _loadPersons();
-  }
-
-  Future<void> _loadPersons() async {
-    final persons = await Api.getPersons();
-    setState(() {
-      _persons = persons;
-    });
+      if (currentUser != null) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: Text('Szia, ${currentUser.name}!'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('A te ID-d ${currentUser.id}'),
+                SizedBox(height: 8),
+                Text('A felhasznalok:'),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: persons.length,
+                    itemBuilder: (context, index) {
+                      return Text(persons[index].name);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: Text('Hiba'),
+            content: Text('Nincs ilyen nevu felhasznalo'),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Hiba a felhasznalo keresese kozben: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: Text('Hiba'),
+          content: Text('Nem sikerult megtalalni a felhasznalot'),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('UserID teszt'),
+        title: Text('teszt'),
       ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              hintText: 'Irj be egy nevet',
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _persons.length,
-              itemBuilder: (context, index) {
-                final person = _persons[index];
-                return ListTile(
-                  title: Text(person.name),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () async {
-                      await Api.deletePerson(person.id);
-                      await _loadPersons();
-                    },
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MainScreen(
-                          person: person,
-                          onUpdate: () async {
-                            await _loadPersons();
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MainScreen(
-                onUpdate: () async {
-                  await _loadPersons();
-                },
-                person: null,
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                hintText: 'Felhasznalo nev',
               ),
             ),
-          );
-        },
-        child: Icon(Icons.add),
+            SizedBox(height: 16.0),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                hintText: 'Jelszo',
+              ),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _login,
+              child: Text('Belepes'),
+            ),
+          ],
+        ),
       ),
     );
   }

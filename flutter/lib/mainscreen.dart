@@ -31,25 +31,29 @@ class _MainScreenState extends State<MainScreen> {
       if (currentUser != null) {
         showDialog(
           context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: Text('Szia, ${currentUser.name}!'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('A te ID-d ${currentUser.id}'),
-                SizedBox(height: 8),
-                Text('A felhasznalok:'),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: persons.length,
-                    itemBuilder: (context, index) {
-                      return Text(persons[index].name);
-                    },
-                  ),
-                ),
-              ],
-            ),
+          builder: (BuildContext context) => LayoutBuilder(
+            builder: (_, constrains) => AlertDialog(
+                title: Text('Szia, ${currentUser.name}'),
+                scrollable: true,
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('A te ID-d: ${currentUser.id}'),
+                    SizedBox(height: 8),
+                    Text('A felhasznalok:'),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (var person in persons)
+                          Text(
+                            person.name,
+                            style: TextStyle(fontSize: 20),
+                          )
+                      ],
+                    ),
+                  ],
+                )),
           ),
         );
       } else {
